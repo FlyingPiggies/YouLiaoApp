@@ -2,7 +2,7 @@ import logging
 import re
 import time
 
-from Util import getluckyinfo, Logger
+from Util.Util import getluckyinfo, Logger
 
 
 def autogetluckyinfo():

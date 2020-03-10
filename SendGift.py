@@ -2,7 +2,7 @@ from multiprocessing import Process
 
 import schedule
 
-from Util import automaticsendgift, autokeeplive, dealinroom
+from Util.Util import automaticsendgift, autokeeplive, dealinroom
 
 
 def sendgift(targetroomid, targetuserid):

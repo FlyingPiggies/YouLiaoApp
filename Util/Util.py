@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import os
 import re
 from logging import handlers
 
@@ -29,7 +30,7 @@ def getroomid(userid, roomnum):
 def getusernewno(userid):
     url = "http://soagw.live.szcsckj.com/xllive.zbsearch.s/v1/Search.json"
 
-    payload = "{\"length\":20,\"key\":\"" + userid + "\",\"page\":1}"
+    payload = "{'length':20,'key':'" + userid + "','page':1}"
     headers = {
         'Content-Type': "text/plain",
         'Connection': 'close',
@@ -47,7 +48,7 @@ def getusernewno(userid):
 def getuserinfo(usernewno):
     url = "http://soagw.live.szcsckj.com/xllive.zbuserservice.s/v1/GetUserinfo.json"
 
-    payload = "{\"touserid\":\"" + usernewno + "\"}"
+    payload = "{'touserid':'" + usernewno + "'}"
     headers = {
         'Content-Type': "text/plain",
         'Connection': 'close',
@@ -81,7 +82,7 @@ def getroomnum(usernewno):
 def searchroom(room_num):
     url = "http://soagw.pw.szcsckj.com/xllive.pwroomsearch.s/v1/SearchRoom.json"
 
-    payload = "{\"page\":0,\"limit\":20,\"keyword\":\"" + room_num + "\"}"
+    payload = "{'page':0,'limit':20,'keyword':'" + room_num + "'}"
     headers = {
         'Content-Type': "text/plain",
         'Connection': 'close',
@@ -101,7 +102,7 @@ def checkpassword(room_id, password, proxy=None):
     try:
         url = "http://soagw.pw.szcsckj.com/xllive.service.pwroominfo/v1/CheckPasswd"
 
-        payload = "{\"room_id\":\"" + room_id + "\",\"password\":\"" + password + "\"}"
+        payload = "{'room_id':'" + room_id + "','password':'" + password + "'}"
         headers = {
             'Content-Type': "text/plain",
             'Connection': 'close',
@@ -161,9 +162,7 @@ def getfollowlist():
         'Accept': "*/*",
         'Cookie': "guid=adc7bea471d5e3b6b4507fb76ab7669a; deviceid=adc7bea471d5e3b6b4507fb76ab7669a; userid=775338585; sessionid=cs001.CEC64B3E5655877D9B9F7EB3B1FCE418; os=ios; osver=13.1.3; model=iPhone11,8; appver=1.0.0; appcode=3; appid=1027; sign=e13a273c7454e883f953cc706007815c; channel=inhouse; pushToken=; account_appid=22014",
         'User-Agent': "AudioClub/1.0.0 (iPhone; iOS 13.1.3; Scale/2.00)",
-
         'Accept-Encoding': "gzip, deflate",
-
         'cache-control': "no-cache"
     }
 
@@ -195,11 +194,33 @@ def drawlottery():
     return response
 
 
+def getgiftcontributelist(userid, giftid):
+    sessionid, senduserid = readfile();
+    url = 'http://soagw.pw.szcsckj.com/xllive.pwgiftwall.s/v1/GetGiftContributeList.json'
+
+    payload = "{'user_id': '" + userid + "', 'gift_id': " + giftid + ",'page':1,'limit':20}"
+
+    headers = {
+        'Host': "soagw.pw.szcsckj.com",
+        'Accept': "*/*",
+        'Cookie': "guid=a26c43c4ca0be8816332d4dedb511698; deviceid=a26c43c4ca0be8816332d4dedb511698; userid=" + senduserid + "; sessionid=" + sessionid + "; os=ios; osver=13.1.3; model=iPhone11,8; appver=1.0.0; appcode=3; time=20191213130042; appid=1027; sign=3533f21e05a454164bdbecb29bbf52ea; channel=inhouse; pushToken=; account_appid=22014",
+        'User-Agent': "AudioClub/1.0.0 (iPhone; iOS 13.1.3; Scale/2.00)",
+        'Accept-Language': "zh-Hans-CN;q=1, zh-Hant-CN;q=0.9",
+        'Accept-Encoding': "gzip, deflate",
+        'Content-Type': "text/plain",
+        'Cache-Control': "no-cache",
+    }
+
+    response = requests.request('POST', url, headers=headers, data=payload)
+
+    print(response.content.decode("utf-8"))
+
+
 def dealinroom(roomid):
     print('deal in room ' + str(datetime.datetime.now()))
     sessionid, userid = readfile()
     url = "http://soagw.pw.szcsckj.com/xllive.service.online/v1/DealInRoom"
-    payload = "{\"bizno\":\"1001\",\"roomid\":\"" + roomid + "\"}"
+    payload = "{'bizno':'1001','roomid':'" + roomid + "'}"
     headers = {
         'Host': "soagw.pw.szcsckj.com",
         'Content-Type': "application/json",
@@ -217,7 +238,8 @@ def dealinroom(roomid):
 
 
 def checksession(response, roomid):
-    if ("ResultCode_NOTLOGIN" in response.text) or ("err session check" in response.text) or ("check session failed" in response.text):
+    if ("ResultCode_NOTLOGIN" in response.text) or ("err session check" in response.text) or (
+            "check session failed" in response.text):
         print('session expired')
         readfile(flag=False)
         dealinroom(roomid)
@@ -229,7 +251,7 @@ def checksession(response, roomid):
 def sendgift(sessionid, roomid, senduserid, acceptuserid):
     print('send gift ' + str(datetime.datetime.now()))
     url = "http://soagw.pw.szcsckj.com/xllive.gift.s/v1/PwSendGift.json"
-    payload = "{\"roomId\":\"" + roomid + "\",\"giftId\":\"1097\",\"sendScene\":\"1\",\"sendUserid\":\"" + senduserid + "\",\"isSendAll\":\"0\",\"sendNum\":\"1\",\"acceptUserids\":[\"" + acceptuserid + "\"]} "
+    payload = "{'roomId':'" + roomid + "','giftId':'1097','sendScene':'1','sendUserid':'" + senduserid + "','isSendAll':'0','sendNum':'1','acceptUserids':['" + acceptuserid + "']} "
     headers = {
         'Host': "soagw.pw.szcsckj.com",
         'Accept': "*/*",
@@ -251,7 +273,7 @@ def sendgift(sessionid, roomid, senduserid, acceptuserid):
 def keeplive(sessionid, roomid, userid):
     print('keep live ' + str(datetime.datetime.now()))
     url = "http://soagw.pw.szcsckj.com/xllive.service.online/v1/DealPing"
-    payload = "{\"bizno\":\"1001\",\"roomid\":\"" + roomid + "\"}"
+    payload = "{'bizno':'1001','roomid':'" + roomid + "'}"
     headers = {
         'Host': "soagw.pw.szcsckj.com",
         'Content-Type': "application/json",
@@ -291,12 +313,13 @@ def login():
       "sdkVersion" : "4.8.2.4",
       "peerID" : "peerid",
       "deviceModel" : "iPhone11,8",
-      "passWord" : "1234qwer",
+      "passWord" : "''' + os.getenv("PASSWORD") + '''",
       "OSVersion" : "iOS13.1.3",
-      "userName" : "17349702867",
+      "userName" : "''' + os.getenv("USERNAME") + '''",
       "netWorkType" : "WIFI",
       "platformVersion" : "11"
     }'''
+
     headers = {
         'Host': "xluser-ssl.szcsckj.com",
         'Content-Type': "application/x-www-form-urlencoded",
@@ -323,7 +346,7 @@ def login():
 def getluckyinfo():
     url = "http://soagw.pw.szcsckj.com/xllive.pwthunderlottery.s/v1/GetLuckyInfo.json"
 
-    payload = "{\"actId\":18}"
+    payload = "{'actId':18}"
 
     response = requests.request("POST", url, data=payload)
 
@@ -331,13 +354,13 @@ def getluckyinfo():
 
 
 def readfile(flag=True):
-    f = open('cache.txt', 'r+')
+    f = open('../cache.txt', 'r+')
     sessionid = f.readline().strip('\n')
     userid = f.readline().strip('\n')
     f.close()
     if sessionid == '' or userid == '' or not flag:
         sessionid, userid = login()
-        f = open('cache.txt', 'w+')
+        f = open('../cache.txt', 'w+')
         f.write(sessionid)
         f.write('\n')
         f.write(userid)
@@ -354,7 +377,6 @@ def automaticsendgift(targetroom, targetuser):
         if checksession(response, targetroom):
             pass
         else:
-            # todo: auto sign out when the use's stock is insufficent
             break
 
 
@@ -385,4 +407,4 @@ class Logger(object):
 
 
 if __name__ == '__main__':
-    pass
+    getgiftcontributelist('775791522', '1097')
