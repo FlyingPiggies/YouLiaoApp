@@ -1,8 +1,9 @@
 import logging
+import os
 import re
 import time
 
-from Util.Util import getluckyinfo, Logger
+from Util import getluckyinfo, Logger
 
 
 def autogetluckyinfo():
@@ -16,11 +17,16 @@ def autogetluckyinfo():
             if process != 0:
                 # drawlottery()
                 pass
-            process = result[0] 
+            process = result[0]
         time.sleep(0.5)
 
 
-log = Logger(filename='Logs/GetLuckyInfo.log',
+try:
+    os.makedirs('logs')
+except OSError:
+    pass
+
+log = Logger(filename='logs/GetLuckyInfo.log',
              level=logging.DEBUG)
 
 autogetluckyinfo()

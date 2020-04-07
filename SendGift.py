@@ -1,19 +1,18 @@
-from multiprocessing import Process
-
 import schedule
+from multiprocessing import Process
+from Util import sendgift, keeplive, dealinroom, login
 
-from Util.Util import automaticsendgift, autokeeplive, dealinroom
 
-
-def sendgift(targetroomid, targetuserid):
-    schedule.every(5.05).minutes.do(automaticsendgift, targetroom=targetroomid, targetuser=targetuserid)
+def automaticsendgift(sessionid, userid, targetroomid, targetuserid):
+    schedule.every(5.05).minutes.do(sendgift, sessionid=sessionid, roomid=targetroomid, senduserid=userid,
+                                    acceptuserid=targetuserid)
 
     while True:
         schedule.run_pending()
 
 
-def keeplive(targetroom):
-    schedule.every(15).seconds.do(autokeeplive, targetroom=targetroom)
+def autokeeplive(sessionid, userid, targetroomid):
+    schedule.every(15).seconds.do(keeplive, sessionid=sessionid, roomid=targetroomid, userid=userid)
 
     while True:
         schedule.run_pending()
@@ -24,8 +23,9 @@ if __name__ == '__main__':
     # '2_72518' self
     targetroomid = '2_72518'
     targetuserid = '775791522'
-    dealinroom(targetroomid)
-    p1 = Process(target=sendgift, args=(targetroomid, targetuserid))
-    p2 = Process(target=keeplive, args=(targetroomid,))
+    sessionid, userid = login()
+    dealinroom(sessionid, userid, targetroomid)
+    p1 = Process(target=automaticsendgift, args=(sessionid, userid, targetroomid, targetuserid))
+    p2 = Process(target=autokeeplive, args=(sessionid, userid, targetroomid,))
     p1.start()
     p2.start()

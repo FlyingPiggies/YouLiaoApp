@@ -4,6 +4,7 @@ import logging
 import os
 import re
 from logging import handlers
+from pathlib import Path
 
 import requests
 
@@ -216,9 +217,8 @@ def getgiftcontributelist(userid, giftid):
     print(response.content.decode("utf-8"))
 
 
-def dealinroom(roomid):
+def dealinroom(sessionid, userid, roomid):
     print('deal in room ' + str(datetime.datetime.now()))
-    sessionid, userid = readfile()
     url = "http://soagw.pw.szcsckj.com/xllive.service.online/v1/DealInRoom"
     payload = "{'bizno':'1001','roomid':'" + roomid + "'}"
     headers = {
@@ -241,8 +241,8 @@ def checksession(response, roomid):
     if ("ResultCode_NOTLOGIN" in response.text) or ("err session check" in response.text) or (
             "check session failed" in response.text):
         print('session expired')
-        readfile(flag=False)
-        dealinroom(roomid)
+        sessionid, userid = login()
+        dealinroom(sessionid, userid, roomid)
         return True
     else:
         return False
@@ -264,9 +264,7 @@ def sendgift(sessionid, roomid, senduserid, acceptuserid):
     }
 
     response = requests.request("POST", url, data=payload, headers=headers)
-
     print(response.text)
-
     return response
 
 
@@ -287,9 +285,7 @@ def keeplive(sessionid, roomid, userid):
     }
 
     response = requests.request("POST", url, data=payload, headers=headers)
-
     print(response.text)
-
     return response
 
 
@@ -345,49 +341,17 @@ def login():
 
 def getluckyinfo():
     url = "http://soagw.pw.szcsckj.com/xllive.pwthunderlottery.s/v1/GetLuckyInfo.json"
-
-    payload = "{'actId':18}"
-
+    payload = "{'actId': " + os.getenv("ACTID") + "}"
     response = requests.request("POST", url, data=payload)
-
     return response
 
 
-def readfile(flag=True):
-    f = open('../cache.txt', 'r+')
+def readfile():
+    f = open('cache.txt', 'r+')
     sessionid = f.readline().strip('\n')
     userid = f.readline().strip('\n')
     f.close()
-    if sessionid == '' or userid == '' or not flag:
-        sessionid, userid = login()
-        f = open('../cache.txt', 'w+')
-        f.write(sessionid)
-        f.write('\n')
-        f.write(userid)
-        f.close()
-
     return sessionid, userid
-
-
-def automaticsendgift(targetroom, targetuser):
-    while True:
-        sessionid, userid = readfile()
-        response = sendgift(sessionid, targetroom, userid, targetuser)
-
-        if checksession(response, targetroom):
-            pass
-        else:
-            break
-
-
-def autokeeplive(targetroom):
-    while True:
-        session, userid = readfile()
-        response = keeplive(session, targetroom, userid)
-        if checksession(response, targetroom):
-            pass
-        else:
-            break
 
 
 class Logger(object):
